@@ -6,7 +6,6 @@ const Pages = () => {
   if (isAuthenticated) {
     return <Authenticated />
   }
-
   return <UnAuthenticated />
 }
 
