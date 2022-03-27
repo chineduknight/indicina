@@ -1,7 +1,7 @@
 
 export const PROTECTED_PATHS = {
   SEARCH: '/search',
-  RESULTS: '/results'
+  RESULT: '/result'
 }
 
 export const PUBLIC_PATHS = {
