@@ -3,7 +3,13 @@ import SearchBox from './SearchBox'
 import UserAvatar from './UserAvatar'
 import githubLogo from "assets/images/githubLogo.png";
 
-const NavBar = () => {
+type NavBarProps = {
+  // eslint-disable-next-line no-unused-vars
+  onSearchChange: (event) => void
+}
+
+const NavBar = (props: NavBarProps) => {
+  const { onSearchChange } = props
   return (
     <Box as="nav" position="sticky" top="0" bg="#fff" boxShadow="0px 0px 5px rgba(196, 203, 214, 0.7)">
       <Center w="71.875rem" m="auto">
@@ -17,7 +23,7 @@ const NavBar = () => {
             <Image src={githubLogo} alt="git hub icon" w="100%" />
           </Box>
           <Box w="23.75rem">
-            <SearchBox small />
+            <SearchBox small onChange={onSearchChange} />
           </Box>
           <UserAvatar />
         </Flex>

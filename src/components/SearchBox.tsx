@@ -3,14 +3,18 @@ import { ReactComponent as SearchIcon } from 'assets/images/searchIcon.svg'
 
 type SearchBoxProps = {
   small?: boolean;
+  // eslint-disable-next-line no-unused-vars
+  onChange: (event: any) => void
 }
 
 const SearchBox = (props: SearchBoxProps) => {
-  const { small = false } = props;
+  const { small = false, onChange } = props;
   return (
     <InputGroup size='sm'
     >
-      <Input placeholder='Search...'
+      <Input
+        onChange={onChange}
+        placeholder='Search...'
         _focus={{
           outline: "none"
         }}

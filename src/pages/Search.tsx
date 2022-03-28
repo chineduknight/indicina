@@ -29,7 +29,7 @@ const Search = () => {
           w="100%"
         >
 
-          <SearchBox />
+          <SearchBox onChange={() => console.log()} />
         </Box>
         <Button>Search Github</Button>
       </Center>

@@ -1,15 +1,72 @@
-import { Box, Flex, Text, Button, VStack } from "@chakra-ui/react";
+import { useLazyQuery } from '@apollo/client';
+import { Box, Flex, Text, Button, VStack, useBoolean } from "@chakra-ui/react";
 import NavBar from 'components/NavBar';
+import { useState } from 'react';
+import { REPOSITORY, USERS } from './query';
+import toast from 'react-hot-toast';
+import Loader from 'components/Loader';
 
 const Results = () => {
+  const [isUsers, setisUsers] = useBoolean()
+  const [repos, setRepos] = useState([]);
+  const [repoCount, setRepoCount] = useState(0);
+  const [users, setUsers] = useState([]);
+  const [usersCount, setUsersCount] = useState(0);
+  const [getRepos,
+    { loading: fetchingRepos }
+
+  ] = useLazyQuery(
+    REPOSITORY,
+    {
+      onCompleted(res) {
+        const response = res.search;
+        setRepos(response.edges)
+        setRepoCount(response.repositoryCount)
+      },
+      onError() {
+        toast.error("An Error Occured")
+      },
+    }
+  );
+
+  const [getUsers,
+    { loading: fetchingUsers }
+
+  ] = useLazyQuery(
+    USERS,
+    {
+      onCompleted(res) {
+        const response = res.search;
+        setUsers(response.nodes)
+        setUsersCount(response.userCount)
+      },
+      onError() {
+        toast.error("An Error Occured")
+      },
+    }
+  );
+
+
+
+
+
+  const handleChange = (event) => {
+    const searchTerm = event.target.value
+    getRepos({
+      variables: { searchTerm },
+    });
+    getUsers({
+      variables: { searchTerm },
+    });
+
+  }
   return (
     <Box minH="100vh" bg="#FAFBFC">
-      <NavBar />
-      <Flex
+      <NavBar onSearchChange={handleChange} />
+      {fetchingRepos || fetchingUsers ? <Box mt="5rem"> <Loader /></Box> : <Flex
         mt="1.875rem"
         justifyContent="center"
       >
-
         <Box
           bg="#fff"
           boxShadow="0px 6px 58px rgba(196, 203, 214, 0.1)"
@@ -20,14 +77,19 @@ const Results = () => {
           position="sticky"
           top="6.5625rem"
         >
-          <Button variant="unstyled"
+          <Button
+            variant="unstyled"
             display="flex"
             justifyContent="space-between"
             w="13.75rem"
             fontWeight="normal"
             fontSize="0.875rem"
-            bg="#F7F7F8"
+            bg={isUsers ? "" : "#F7F7F8"}
             p="0.625rem"
+            onClick={setisUsers.off}
+            _hover={{
+              bg: "#F7F7F8"
+            }}
           >
             <Text
               color="#5C5C5C"
@@ -44,18 +106,24 @@ const Results = () => {
               lineHeight="1rem"
               fontWeight="bold"
               fontSize="0.6875rem"
+              color="#5C5C5C"
             >
-              492k
+              {kFormatter(repoCount)}
             </Text>
 
           </Button>
-          <Button variant="unstyled"
+          <Button
+            onClick={setisUsers.on}
+            variant="unstyled"
             display="flex"
             justifyContent="space-between"
             w="13.75rem"
             fontWeight="normal"
             fontSize="0.875rem"
             p="0.625rem"
+            color="#5C5C5C"
+            bg={isUsers ? "#F7F7F8" : ""}
+
             _hover={{
               bg: "#F7F7F8"
             }}
@@ -76,7 +144,7 @@ const Results = () => {
               fontWeight="bold"
 
             >
-              120
+              {kFormatter(usersCount)}
             </Text>
 
           </Button>
@@ -87,21 +155,47 @@ const Results = () => {
             fontSize="1.25rem"
             fontWeight="bold"
             mb="1.5625rem"
-          >2,985 repository results</Text>
+          >{isUsers ?
+            usersCount.toLocaleString('en-US') :
+            repoCount.toLocaleString('en-US')}{isUsers ? " Users" : " repository results"}</Text>
+
+
           <VStack spacing="1.25rem">
             {
-              new Array(20).fill(0).map((_, index) =>
-                <DisplayCard key={index} />
-              )
+              isUsers ? users.map((user: any) => <UserCard key={user.id}
+                user={user}
+              />)
+
+                :
+
+                repos.length > 0 && repos.map((repo, index) =>
+                  <DisplayCard
+                    key={index}
+                    repo={repo}
+                  />
+                )
             }
           </VStack>
         </Box>
-      </Flex>
+      </Flex>}
     </Box>
   );
 };
 
-const DisplayCard = () => {
+const DisplayCard = (props: any) => {
+  const { repo } = props;
+  const { node: currentRepo } = repo;
+
+  const repoDetails = {
+    stars: currentRepo?.stargazerCount || 0,
+    language: currentRepo?.primaryLanguage?.name || "None",
+    licence: currentRepo.licenseInfo?.name || "None",
+    lastUpdate: currentRepo.updatedAt
+  }
+
+  const { stars, language, licence, lastUpdate } = repoDetails
+
+
   return <Box
     bg="#fff"
     boxShadow="0px 6px 58px rgba(196, 203, 214, 0.1)"
@@ -111,17 +205,69 @@ const DisplayCard = () => {
   >
     <Text
       fontWeight="bold"
-    >DrKLO/Telegram</Text>
+    > {currentRepo?.name} </Text>
     <Text
       color="#91929E"
       fontSize="0.875rem"
-    >Telegram for Android source</Text>
+    >{currentRepo?.description} </Text>
     <Text
       color="#91929E"
       fontSize="0.75rem"
       mt="4"
-    >17.2k Stars | Java | GPL-2.0 License | Updated 4 hours ago</Text>
+    >
+      {stars}  Stars | {language} | {licence} | {lastUpdate}
+
+    </Text>
   </Box>
 }
 
 export default Results;
+
+function kFormatter(num) {
+  const kvalue = (num / 1000).toFixed(0) + "k"
+
+  return num > 999 ?
+    kvalue :
+    num
+}
+
+const UserCard = (props: any) => {
+  const { user } = props;
+
+
+  const userDetails = {
+    name: user.name || "None",
+    userName: user.login,
+    bio: user?.bio || "None",
+  }
+
+  const { name, userName, bio } = userDetails
+
+
+  return <Box
+    bg="#fff"
+    boxShadow="0px 6px 58px rgba(196, 203, 214, 0.1)"
+    borderRadius="3px"
+    p="1.25rem"
+    w="42.5rem"
+  >
+    <Text
+      fontWeight="bold"
+      display="inline-block"
+    > {name} </Text>
+    <Text
+      display="inline"
+      color="#91929E"
+      fontSize="0.875rem"
+      ml="0.625rem"
+    >{userName} </Text>
+    <Text
+      color="#91929E"
+      fontSize="0.75rem"
+      mt="4"
+    >
+      {bio}
+
+    </Text>
+  </Box>
+}
