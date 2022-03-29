@@ -1,8 +1,9 @@
 import UnAuthenticated from './UnAuthenticated';
 import Authenticated from './Authenticated';
+import { isUserAuthenticated } from 'utils/helpers';
 
 const Pages = () => {
-  const isAuthenticated = true;
+  const isAuthenticated = isUserAuthenticated();
   if (isAuthenticated) {
     return <Authenticated />
   }

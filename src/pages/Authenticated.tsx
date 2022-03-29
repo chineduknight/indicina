@@ -8,6 +8,7 @@ import {
   createHttpLink
 } from "@apollo/client";
 import { setContext } from '@apollo/client/link/context';
+import { AUTH_USER_KEY } from 'utils/constant';
 
 const httpLink = createHttpLink({
   uri: 'https://api.github.com/graphql',
@@ -15,8 +16,7 @@ const httpLink = createHttpLink({
 
 // https://www.apollographql.com/docs/react/networking/authentication/
 const authLink = setContext((_, { headers }) => {
-  // const token = localStorage.getItem('token');
-  const token = "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";
+  const token = localStorage.getItem(AUTH_USER_KEY);
   return {
     headers: {
       ...headers,

@@ -15,12 +15,12 @@ export const ButtonStyles = {
       color: "white",
       padding: "0.9375rem 1.875rem 0.875rem 1.9375rem",
       _hover: {
-        bg: mode("#3E3E3E", darken("#FCDD18", 20))(props),
+        bg: mode("#3E3E3E", darken("#5C5C5C", 20))(props),
         boxShadow: "md",
         color: "#fff",
         _disabled: {
-          bg: "#FCDD18",
-          color: "black",
+          bg: "#5C5C5C",
+          color: "white",
         },
       },
     }),
