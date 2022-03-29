@@ -1,10 +1,12 @@
 import { useLazyQuery } from '@apollo/client';
 import { Box, Flex, Text, Button, VStack, useBoolean } from "@chakra-ui/react";
 import NavBar from 'components/NavBar';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { REPOSITORY, USERS } from './query';
-import toast from 'react-hot-toast';
 import Loader from 'components/Loader';
+import { notifyOfError } from 'utils/helpers';
+import _ from "lodash";
+import { useParams } from 'react-router-dom';
 
 const Results = () => {
   const [isUsers, setisUsers] = useBoolean()
@@ -12,10 +14,25 @@ const Results = () => {
   const [repoCount, setRepoCount] = useState(0);
   const [users, setUsers] = useState([]);
   const [usersCount, setUsersCount] = useState(0);
-  const [getRepos,
-    { loading: fetchingRepos }
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const searchTerm = urlParams.get('searchTerm');
+    if (searchTerm) {
+      getRepos({
+        variables: { searchTerm },
+      });
+      getUsers({
+        variables: { searchTerm },
+      });
 
-  ] = useLazyQuery(
+    }
+
+
+  }, [])
+
+  const params = useParams();
+  console.log('history:', params)
+  const [getRepos, { loading: fetchingRepos }] = useLazyQuery(
     REPOSITORY,
     {
       onCompleted(res) {
@@ -23,16 +40,13 @@ const Results = () => {
         setRepos(response.edges)
         setRepoCount(response.repositoryCount)
       },
-      onError() {
-        toast.error("An Error Occured")
+      onError(error) {
+        notifyOfError(error, "An Error Occured")
       },
     }
   );
 
-  const [getUsers,
-    { loading: fetchingUsers }
-
-  ] = useLazyQuery(
+  const [getUsers, { loading: fetchingUsers }] = useLazyQuery(
     USERS,
     {
       onCompleted(res) {
@@ -40,15 +54,17 @@ const Results = () => {
         setUsers(response.nodes)
         setUsersCount(response.userCount)
       },
-      onError() {
-        toast.error("An Error Occured")
+      onError(error) {
+        notifyOfError(error, "An Error Occured")
       },
     }
   );
 
 
 
-
+  const debounced = _.debounce(function (event) {
+    handleChange(event);
+  }, 1000);
 
   const handleChange = (event) => {
     const searchTerm = event.target.value
@@ -58,11 +74,10 @@ const Results = () => {
     getUsers({
       variables: { searchTerm },
     });
-
   }
   return (
-    <Box minH="100vh" bg="#FAFBFC">
-      <NavBar onSearchChange={handleChange} />
+    <Box minH="100vh" bg="#FAFBFC" pb="8">
+      <NavBar onSearchChange={debounced} />
       {fetchingRepos || fetchingUsers ? <Box mt="5rem"> <Loader /></Box> : <Flex
         mt="1.875rem"
         justifyContent="center"
@@ -162,13 +177,13 @@ const Results = () => {
 
           <VStack spacing="1.25rem">
             {
-              isUsers ? users.map((user: any) => <UserCard key={user.id}
+              isUsers ? users.length === 0 ? <EmptyCard /> : users.map((user: any) => <UserCard key={user.id}
                 user={user}
               />)
 
                 :
 
-                repos.length > 0 && repos.map((repo, index) =>
+                repos.length === 0 ? <EmptyCard /> : repos.map((repo, index) =>
                   <DisplayCard
                     key={index}
                     repo={repo}
@@ -270,4 +285,15 @@ const UserCard = (props: any) => {
 
     </Text>
   </Box>
+}
+
+const EmptyCard = () => {
+  return <Box
+    bg="#fff"
+    boxShadow="0px 6px 58px rgba(196, 203, 214, 0.1)"
+    borderRadius="3px"
+    p="1.25rem"
+    w="42.5rem"
+    fontWeight="bold"
+  >There is nothing here</Box>
 }

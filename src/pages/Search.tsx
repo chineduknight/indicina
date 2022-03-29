@@ -1,19 +1,28 @@
-import { Box, Button, Image, Center } from '@chakra-ui/react'
+import { Box, Button, Image, Flex, Center } from '@chakra-ui/react'
 import githubLogo from 'assets/images/githubLogo.png'
 import UserAvatar from 'components/UserAvatar'
 import SearchBox from 'components/SearchBox'
+import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { PROTECTED_PATHS } from 'routes/constants'
 const Search = () => {
+  const [searchTerm, setSearchTerm] = useState("")
+  const history = useNavigate();
+  const handleSearch = () => {
+    history(PROTECTED_PATHS.RESULT + `?searchTerm=${searchTerm}`)
+  }
   return (
     <Box>
-      <Box
+      <Flex
         mt="0.9375rem"
         mr={{
           base: "1rem",
           md: "9.25rem"
         }}
+        justifyContent="right"
       >
         <UserAvatar />
-      </Box>
+      </Flex>
       <Center flexDir={"column"} maxW="37.5rem" margin="auto"
         mt="11.875rem"
       >
@@ -29,9 +38,12 @@ const Search = () => {
           w="100%"
         >
 
-          <SearchBox onChange={() => console.log()} />
+          <SearchBox onChange={(e) => setSearchTerm(e.target.value)} />
         </Box>
-        <Button>Search Github</Button>
+        <Button
+          disabled={!searchTerm}
+          onClick={handleSearch}
+        >Search Github</Button>
       </Center>
     </Box>
   )
