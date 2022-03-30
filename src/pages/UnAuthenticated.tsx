@@ -7,7 +7,6 @@ import { AUTH_USER_KEY, BASE_URL } from 'utils/constant';
 const UnAuthenticated = () => {
   const [isLoading, setIsLoading] = useBoolean()
   const onSuccess = async response => {
-    console.log('response:', response)
     setIsLoading.on()
     const url = BASE_URL
     const data = response;
@@ -27,6 +26,7 @@ const UnAuthenticated = () => {
 
   return (
     <Center h="100vh">
+
       {isLoading ?
         <Loader /> :
         <LoginGithub

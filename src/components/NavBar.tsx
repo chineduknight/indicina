@@ -6,7 +6,6 @@ import { PROTECTED_PATHS } from 'routes/constants';
 import { useNavigate } from 'react-router-dom';
 
 type NavBarProps = {
-  // eslint-disable-next-line no-unused-vars
   onSearchChange: (event) => void
 }
 

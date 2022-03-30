@@ -6,7 +6,7 @@ import { Toaster } from 'react-hot-toast';
 const App = () => {
   return (
     <ChakraProvider theme={theme}>
-      <Pages />
+      <Pages data-test="component-app" />
       <Toaster />
     </ChakraProvider>
   )
