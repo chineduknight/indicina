@@ -6,3 +6,4 @@
 export const findByTestAttr = (wrapper, val): any => {
   return wrapper.find(`[data-test='${val}']`);
 }
+

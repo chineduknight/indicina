@@ -13,7 +13,7 @@ const SearchControls = () => {
   }
 
   return (
-    <Center flexDir="column" maxW="37.5rem" margin="auto" mt="11.875rem">
+    <Center data-test="search-controls" flexDir="column" maxW="37.5rem" margin="auto" mt="11.875rem">
       <Image
         src={githubLogo}
         alt="git hub icon"
@@ -28,6 +28,7 @@ const SearchControls = () => {
         <SearchBox onChange={(e) => setSearchTerm(e.target.value)} />
       </Box>
       <Button
+        data-test="search-btn"
         disabled={!searchTerm}
         onClick={handleSearch}
       >Search Github</Button>
