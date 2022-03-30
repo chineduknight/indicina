@@ -31,3 +31,11 @@ export function logUserOut(): void {
   localStorage.clear();
   window.location.href = "/"
 }
+export function formatNumber(num) {
+  const kvalue = (num / 1000).toFixed(0) + "k"
+  return num > 999 ?
+    kvalue :
+    num
+}
+
+

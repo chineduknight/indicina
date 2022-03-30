@@ -6,7 +6,7 @@ const UserAvatar = () => {
   const [showLogout, setShowLogout] = useBoolean();
   const handleLogout = () => {
     logUserOut()
-    setShowLogout.off;
+    // setShowLogout.off;
   }
   return (
     <Flex
