@@ -26,7 +26,6 @@ const UnAuthenticated = () => {
 
   return (
     <Center h="100vh">
-
       {isLoading ?
         <Loader /> :
         <LoginGithub

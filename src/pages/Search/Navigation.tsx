@@ -4,6 +4,7 @@ import UserAvatar from 'components/UserAvatar'
 const Navigation = () => {
   return (
     <Flex
+      data-test="search-nav"
       mt="0.9375rem"
       mr={{
         base: "1rem",
@@ -11,7 +12,7 @@ const Navigation = () => {
       }}
       justifyContent="right"
     >
-      <UserAvatar />
+      <UserAvatar data-test="search-avatar" />
     </Flex>
   )
 }
