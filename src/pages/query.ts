@@ -4,8 +4,21 @@ import {
 
 
 export const REPOSITORY = gql`
-query GetRepo($searchTerm:String!){
-  search(query: $searchTerm, type: REPOSITORY, first: 10) {
+query GetRepo( 
+    $searchTerm:String!,
+    $before:String, 
+    $first: Int,
+    $last: Int,
+    $after:String,
+    ){
+  search(
+    query: $searchTerm, 
+    type: REPOSITORY, 
+    first: $first,
+    last:$last,
+    before:$before 
+    after:$after
+    ) {
     repositoryCount
     edges {
       node {
@@ -25,13 +38,29 @@ query GetRepo($searchTerm:String!){
         }
       }
     }
+    pageInfo{
+      endCursor
+      hasNextPage
+      hasPreviousPage
+      startCursor
+    }
   }
 }
 `;
 
 export const USERS = gql`
-query GetUsers($searchTerm:String!){
-  search(query: $searchTerm, type: USER, first: 10) {
+query GetUsers($searchTerm:String!
+    $before:String, 
+    $first: Int,
+    $last: Int,
+    $after:String,
+){
+  search(query: $searchTerm, type: USER, 
+    first: $first,
+    last:$last,
+    before:$before 
+    after:$after
+  ) {
     userCount
     nodes {
       __typename
@@ -41,6 +70,12 @@ query GetUsers($searchTerm:String!){
          login
         bio
       }
+    }
+    pageInfo{
+      endCursor
+      hasNextPage
+      hasPreviousPage
+      startCursor
     }
   }
 }

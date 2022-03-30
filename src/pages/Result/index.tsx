@@ -1,43 +1,75 @@
 import { useLazyQuery } from '@apollo/client';
-import { Box, Flex, Text, VStack, useBoolean } from "@chakra-ui/react";
+import { Box, Flex, useBoolean } from "@chakra-ui/react";
 import NavBar from 'components/NavBar';
 import { useEffect, useState } from 'react';
 import { REPOSITORY, USERS } from '../query';
 import Loader from 'components/Loader';
 import { notifyOfError } from 'utils/helpers';
 import _ from "lodash";
-import RepoCard from './RepoCard'
-import UserCard from './UserCard';
-import EmptyCard from './EmptyCard'
 import LeftNavigation from './LeftNavigation';
-
+import DisplayResult from './DisplayResult';
+import Paginator from 'components/Paginator'
 
 const Results = () => {
-  const [isUsers, setisUsers] = useBoolean()
-  const [repos, setRepos] = useState([]);
-  const [repoCount, setRepoCount] = useState(0);
-  const [users, setUsers] = useState([]);
-  const [usersCount, setUsersCount] = useState(0);
+  const [isUsersSelected, setIsUsersSelected] = useBoolean()
+  const [repos, setRepos] = useState({
+    pagination: {
+      endCursor: "",
+      hasNextPage: false,
+      hasPreviousPage: false,
+      startCursor: ""
+    },
+    data: [],
+    count: 0
+  });
+  const [users, setUsers] = useState({
+    pagination: {
+      endCursor: "",
+      hasNextPage: false,
+      hasPreviousPage: false,
+      startCursor: ""
+    },
+    data: [],
+    count: 0
+  });
+  const [currentType, setCurrentType] = useState({
+    pagination: {
+      endCursor: "",
+      hasNextPage: false,
+      hasPreviousPage: false,
+      startCursor: ""
+    },
+    data: [],
+    count: 0
+  });
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const searchTerm = urlParams.get('searchTerm');
     if (searchTerm) {
       getRepos({
-        variables: { searchTerm },
+        variables: { searchTerm, first: 10 },
       });
       getUsers({
-        variables: { searchTerm },
+        variables: { searchTerm, first: 10 },
       });
     }
   }, [])
 
-  const [getRepos, { loading: fetchingRepos }] = useLazyQuery(
+  const [getRepos, { loading: fetchingRepos, fetchMore }] = useLazyQuery(
     REPOSITORY,
     {
       onCompleted(res) {
         const response = res.search;
-        setRepos(response.edges)
-        setRepoCount(response.repositoryCount)
+        setRepos({
+          pagination: response.pageInfo,
+          data: response.edges,
+          count: response.repositoryCount
+        });
+        setCurrentType({
+          pagination: response.pageInfo,
+          data: response.edges,
+          count: response.repositoryCount
+        })
       },
       onError(error) {
         notifyOfError(error, "An Error Occured")
@@ -45,13 +77,16 @@ const Results = () => {
     }
   );
 
-  const [getUsers, { loading: fetchingUsers }] = useLazyQuery(
+  const [getUsers, { loading: fetchingUsers, fetchMore: fetchMoreUsers }] = useLazyQuery(
     USERS,
     {
       onCompleted(res) {
         const response = res.search;
-        setUsers(response.nodes)
-        setUsersCount(response.userCount)
+        setUsers({
+          pagination: response.pageInfo,
+          data: response.nodes,
+          count: response.userCount
+        })
       },
       onError(error) {
         notifyOfError(error, "An Error Occured")
@@ -66,10 +101,111 @@ const Results = () => {
   const handleChange = (event) => {
     const searchTerm = event.target.value
     getRepos({
-      variables: { searchTerm },
+      variables: { searchTerm, first: 10 },
     });
     getUsers({
-      variables: { searchTerm },
+      variables: { searchTerm, first: 10 },
+    });
+  }
+  const handleTabChange = (value: 'repo' | 'users') => {
+    if (value === "users") {
+      setCurrentType(users)
+      return setIsUsersSelected.on();
+    }
+    setCurrentType(repos)
+    setIsUsersSelected.off();
+  }
+
+  const onNextPage = () => {
+    if (isUsersSelected) {
+      return fetchMoreUsers({
+        variables: {
+          after: users.pagination.endCursor,
+          first: 10,
+          last: null
+        },
+        updateQuery: (_, { fetchMoreResult }) => {
+          const response = fetchMoreResult.search;
+          const data = {
+            pagination: response.pageInfo,
+            data: response.nodes,
+            count: response.userCount
+          }
+          setUsers({
+            ...data
+          });
+          setCurrentType({
+            ...data
+          });
+        }
+      });
+    }
+    fetchMore({
+      variables: {
+        after: repos.pagination.endCursor,
+        first: 10,
+        last: null
+      },
+      updateQuery: (_, { fetchMoreResult }) => {
+        const response = fetchMoreResult.search;
+        const data = {
+          pagination: response.pageInfo,
+          data: response.edges,
+          count: response.repositoryCount
+        }
+        setRepos({
+          ...data
+        });
+        setCurrentType({
+          ...data
+        });
+      }
+    });
+  }
+  const onPreviousPage = () => {
+    if (isUsersSelected) {
+      return fetchMoreUsers({
+        variables: {
+          before: users.pagination.startCursor,
+          last: 10,
+          first: null
+        },
+        updateQuery: (_, { fetchMoreResult }) => {
+          const response = fetchMoreResult.search;
+          const data = {
+            pagination: response.pageInfo,
+            data: response.nodes,
+            count: response.userCount
+          }
+          setUsers({
+            ...data
+          });
+          setCurrentType({
+            ...data
+          });
+        }
+      });
+    }
+    fetchMore({
+      variables: {
+        before: repos.pagination.startCursor,
+        last: 10,
+        first: null
+      },
+      updateQuery: (_, { fetchMoreResult }) => {
+        const response = fetchMoreResult.search;
+        const data = {
+          pagination: response.pageInfo,
+          data: response.edges,
+          count: response.repositoryCount
+        }
+        setRepos({
+          ...data
+        });
+        setCurrentType({
+          ...data
+        });
+      }
     });
   }
   return (
@@ -82,19 +218,27 @@ const Results = () => {
           justifyContent="center"
         >
           <LeftNavigation
-            isUsers={isUsers}
-            setisUsers={setisUsers}
-            repoCount={repoCount}
-            usersCount={usersCount}
+            isActive={isUsersSelected}
+            onTabChange={handleTabChange}
+            repoCount={repos.count}
+            usersCount={users.count}
           />
-          <DisplayResult
-            isUsers={isUsers}
-            usersCount={usersCount}
-            repoCount={repoCount}
-            users={users}
-            repos={repos}
-          />
-        </Flex>}
+          <Box>
+            <DisplayResult
+              isUsers={isUsersSelected}
+              usersCount={users.count}
+              repoCount={repos.count}
+              users={users.data}
+              repos={repos.data}
+            />
+            <Paginator
+              handlePrevious={onPreviousPage}
+              handleNext={onNextPage}
+              pagination={currentType.pagination}
+            />
+          </Box>
+        </Flex>
+      }
     </Box>
   );
 };
@@ -104,38 +248,6 @@ const Results = () => {
 export default Results;
 
 
-type DisplayProps = {
-  isUsers: boolean,
-  usersCount: number,
-  repoCount: number,
-  users: never[],
-  repos: never[]
-}
-const DisplayResult = (props: DisplayProps) => {
-  const { isUsers, usersCount, repoCount, users, repos } = props
-  return <Box>
-    <Text
-      color="#000000"
-      fontSize="1.25rem"
-      fontWeight="bold"
-      mb="1.5625rem"
-    >{isUsers ?
-      usersCount.toLocaleString('en-US') :
-      repoCount.toLocaleString('en-US')}
-      {isUsers ? " Users" : " repository results"}</Text>
 
 
-    <VStack spacing="1.25rem">
-      {isUsers ? users.length === 0 ? <EmptyCard /> : users.map((user: any) => <UserCard key={user.id}
-        user={user} />)
-
-        :
-
-        repos.length === 0 ? <EmptyCard /> : repos.map((repo, index) => <RepoCard
-          key={index}
-          repo={repo} />
-        )}
-    </VStack>
-  </Box>;
-}
 

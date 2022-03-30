@@ -1,16 +1,14 @@
 import { Box, Button, Text } from '@chakra-ui/react';
-import React from 'react'
 import { formatNumber } from 'utils/helpers';
 
 type LeftNavProps = {
-  isUsers: boolean,
-  setisUsers: { readonly on: () => void; readonly off: () => void; readonly toggle: () => void; },
+  isActive: boolean,
   repoCount: number,
-  // onClick?: (type: 'repo' | 'users') => void
   usersCount: number
+  onTabChange: (type: 'repo' | 'users') => void
 }
 const LeftNavigation = (props: LeftNavProps) => {
-  const { isUsers, setisUsers, repoCount, usersCount } = props
+  const { isActive, repoCount, onTabChange, usersCount } = props
 
   return (<Box
     bg="#fff"
@@ -29,9 +27,9 @@ const LeftNavigation = (props: LeftNavProps) => {
       w="13.75rem"
       fontWeight="normal"
       fontSize="0.875rem"
-      bg={isUsers ? "" : "#F7F7F8"}
+      bg={isActive ? "" : "#F7F7F8"}
       p="0.625rem"
-      onClick={setisUsers.off}
+      onClick={() => onTabChange('repo')}
       _hover={{
         bg: "#F7F7F8"
       }}
@@ -58,7 +56,7 @@ const LeftNavigation = (props: LeftNavProps) => {
 
     </Button>
     <Button
-      onClick={setisUsers.on}
+      onClick={() => onTabChange('users')}
       variant="unstyled"
       display="flex"
       justifyContent="space-between"
@@ -67,8 +65,7 @@ const LeftNavigation = (props: LeftNavProps) => {
       fontSize="0.875rem"
       p="0.625rem"
       color="#5C5C5C"
-      bg={isUsers ? "#F7F7F8" : ""}
-
+      bg={isActive ? "#F7F7F8" : ""}
       _hover={{
         bg: "#F7F7F8"
       }}
